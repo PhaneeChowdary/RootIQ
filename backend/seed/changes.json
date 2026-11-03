@@ -1,0 +1,11 @@
+[
+  {"service": "payments-api", "at": "2026-09-30T14:10:00Z", "kind": "release", "id": "2026.09.30-2", "by": "ci", "text": "Retry budget for the gateway client"},
+  {"service": "payments-api", "at": "2026-10-02T09:12:00Z", "kind": "release", "id": "2026.10.02-4", "by": "ci", "text": "Renewal idempotency keys; base image debian:12 with the corporate CA bundle"},
+  {"service": "payments-api", "at": "2026-10-03T19:40:11Z", "kind": "commit", "id": "9c41e2a", "by": "Priya Natarajan", "text": "Switch base image to alpine:3.20 to cut image size"},
+  {"service": "web-dashboard", "at": "2026-10-01T16:30:00Z", "kind": "release", "id": "2026.10.01-3", "by": "ci", "text": "Widget cache headers"},
+  {"service": "web-dashboard", "at": "2026-10-02T07:58:30Z", "kind": "commit", "id": "51be07d", "by": "Marco Ruiz", "text": "Turn off the CDN purge step in the deploy pipeline (flaky)"},
+  {"service": "web-dashboard", "at": "2026-10-03T19:57:40Z", "kind": "commit", "id": "e7a90c3", "by": "deploy-bot", "text": "config: db.pool.max_size 40 -> 2 (copied from the staging profile)"},
+  {"service": "auth-service", "at": "2026-10-01T11:05:00Z", "kind": "release", "id": "2026.10.01-1", "by": "ci", "text": "OTP provider failover to the shared EU pool"},
+  {"service": "notifications", "at": "2026-10-02T10:20:00Z", "kind": "release", "id": "2026.10.02-2", "by": "ci", "text": "Batch size 500 for order confirmation emails"},
+  {"service": "file-upload", "at": "2026-10-01T15:45:00Z", "kind": "release", "id": "2026.10.01-2", "by": "ci", "text": "Multipart upload part size 8 MB on staging"}
+]

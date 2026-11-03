@@ -1,0 +1,14 @@
+# web-dashboard staging settings. One small database, few users.
+service: web-dashboard
+environment: staging
+
+db:
+  host: dash-db.staging.internal
+  name: dashboard
+  pool:
+    max_size: 2
+    acquire_timeout_ms: 5000
+
+cdn:
+  bucket: dash-static-staging
+  purge_on_deploy: false

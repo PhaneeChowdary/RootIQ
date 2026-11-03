@@ -1,0 +1,28 @@
+# Prometheus and Grafana in Docker, for computers without Homebrew.
+#   cd monitoring && ROOTIQ_ALERT_TOKEN=... docker compose up
+# RootIQ runs on the host computer at port 8011. The containers reach it at host.docker.internal.
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./prometheus.docker.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["127.0.0.1:9090:9090"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_PATHS_CONFIG: /etc/grafana/rootiq.ini
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_SECURITY_ADMIN_PASSWORD: ${ROOTIQ_GRAFANA_PASSWORD:-admin}
+      PROMETHEUS_URL: http://prometheus:9090
+      ROOTIQ_WEBHOOK_URL: http://host.docker.internal:8011/api/alerts/grafana
+      ROOTIQ_ALERT_TOKEN: ${ROOTIQ_ALERT_TOKEN:?Set ROOTIQ_ALERT_TOKEN to the value in backend/.env}
+      ROOTIQ_DASHBOARDS: /var/lib/grafana/dashboards
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/rootiq.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3000:3000"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [prometheus]

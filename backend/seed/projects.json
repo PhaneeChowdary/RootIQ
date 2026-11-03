@@ -1,0 +1,108 @@
+{
+  "about": "Real projects that the Code agent reads, read-only. Paths are relative to the folder that holds RootIQ. The incidents are simulated: their logs come from simulate_incident.py; the code is real.",
+  "cloud_code": true,
+  "cloud_code_note": "true: Settings > Data sources > Code > Cloud models is on, so Groq or Gemini read the code of these projects and write the patches (secrets in the code are masked; .env files are never read). false or --local-code: only the local model reads the code.",
+  "code": {
+    "trialiq": "../TrialIQ",
+    "triagelm": "../LLMFineTune",
+    "macrolytics": "../Macrolytics"
+  },
+  "scenarios": [
+    "trialiq-null-lab",
+    "triagelm-truncated-json"
+  ],
+  "open": [
+    {
+      "title": "Trial screening estimate fails for the CKD study",
+      "customer": "Clinical research office",
+      "service": "trialiq",
+      "environment": "production",
+      "severity": "high",
+      "reported_issue": "Since this morning the Estimate and Screen steps of trial NCT06742723 (baxdrostat in CKD) fail with a server error for the study coordinators. The diabetes trial still works.",
+      "logs": ""
+    },
+    {
+      "title": "Support tickets fall back to manual triage after the model update",
+      "customer": "Support operations",
+      "service": "triagelm",
+      "environment": "production",
+      "severity": "high",
+      "reported_issue": "Since today's TriageLM model update, long support tickets come back without a routing decision and land in the manual queue. Short tickets still work.",
+      "logs": ""
+    }
+  ],
+  "resolved": [
+    {
+      "title": "HbA1c criteria missed patients with results in mmol/mol",
+      "customer": "Clinical research office",
+      "service": "trialiq",
+      "environment": "production",
+      "severity": "medium",
+      "reported_issue": "Patients with HbA1c reported in mmol/mol were never matched to the diabetes trial, which states HbA1c in percent.",
+      "cause": "The rules engine compared the raw value with the criterion. A result of 64 mmol/mol is 8.0 %, but the engine read 64.",
+      "workaround": "Coordinators converted the values by hand.",
+      "resolution": "Added the mmol/mol to % conversion to units.py and converted each lab value to the criterion's unit before the comparison.",
+      "preventive_actions": [
+        "A test for each unit pair in units.py",
+        "Show the converted and the original value in the evidence"
+      ]
+    },
+    {
+      "title": "Fine-tuned triage model wrapped its JSON in Markdown",
+      "customer": "Support operations",
+      "service": "triagelm",
+      "environment": "production",
+      "severity": "medium",
+      "reported_issue": "Some triage results came back as json_ok=false although the model output looked right.",
+      "cause": "The model sometimes put the JSON inside a Markdown code fence, and json.loads failed on the fence.",
+      "workaround": "None.",
+      "resolution": "The parser now falls back to the text between the first { and the last } (eval/parse.py).",
+      "preventive_actions": [
+        "A parse test with fenced output",
+        "Track json_ok in the evaluation report"
+      ]
+    },
+    {
+      "title": "Weight trend showed pounds as kilograms",
+      "customer": "Macrolytics Pro user",
+      "service": "macrolytics",
+      "environment": "production",
+      "severity": "low",
+      "reported_issue": "After switching to imperial units, my weight trend jumped from 80 to 176.",
+      "cause": "Weights typed in pounds were saved without conversion to kilograms.",
+      "workaround": "Switch back to metric before logging.",
+      "resolution": "Weights are converted with toKg in lib/nutrition.ts before they are saved.",
+      "preventive_actions": [
+        "Store weights in kg only",
+        "A unit test for toKg and toDisplayWeight"
+      ]
+    },
+    {
+      "title": "Weekly check-in told users who skip logging days to eat 1,200 kcal",
+      "customer": "Macrolytics Pro user",
+      "service": "macrolytics",
+      "environment": "production",
+      "severity": "medium",
+      "reported_issue": "My weekly check-in says my TDEE is about 1,390 and recommends 1,200 kcal for my cut. I eat around 2,400 kcal on the days I log, but I only log 4 days a week.",
+      "cause": "averageCalories in lib/nutrition.ts counted each day with no food log as 0 kcal, so the 7-day intake average and the estimated TDEE were far too low.",
+      "workaround": "Log food every day of the week.",
+      "resolution": "averageCalories and adherenceScore now use logged days only. The check-in needs 3 logged days and 2 weigh-ins in the last 7 days, and the weight trend is a weekly rate.",
+      "preventive_actions": [
+        "A test for a week with skipped logging days",
+        "Treat missing data as unknown, not as zero"
+      ]
+    }
+  ],
+  "jira_keep": [
+    "KAN-4",
+    "KAN-6",
+    "KAN-8",
+    "KAN-18",
+    "KAN-19",
+    "KAN-20"
+  ],
+  "jira_keep_note": "Jira tickets that stay open as demo cases, one edge case each: KAN-18 personal data in a ticket (masking), KAN-19 model routing, KAN-6 critical double charge (a look-alike past incident), KAN-8 staging, not production, KAN-4 and KAN-20 one cause in two services (related incidents). prepare_demo imports them again with a fresh SLA. Close the other tickets in Jira, or a sync imports them.",
+  "jira_scenarios": [
+    "eu-otp-email"
+  ]
+}

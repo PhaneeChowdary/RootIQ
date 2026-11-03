@@ -1,0 +1,5 @@
+2026-10-08T10:00:03Z INFO [deploy] model=triage-ft:2026.10.03 running schema=v1
+2026-10-08T10:00:05Z INFO [triage] model loaded name=triage-ft num_predict=256 temperature=0.0
+2026-10-08T10:14:22Z INFO [triage] ticket triaged chars=418 json_ok=true schema_ok=true ms=910
+2026-10-08T11:02:47Z INFO [triage] ticket triaged chars=1290 json_ok=true schema_ok=true ms=1840
+2026-10-09T08:41:10Z INFO [triage] ticket triaged chars=236 json_ok=true schema_ok=true ms=780

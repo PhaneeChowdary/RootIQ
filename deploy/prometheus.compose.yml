@@ -1,0 +1,8 @@
+# Prometheus inside docker-compose.yml : it reads the API's /metrics. Profile "monitoring".
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: rootiq
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8011"]

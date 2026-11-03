@@ -1,0 +1,37 @@
+# Grafana Loki for RootIQ: one process, files on this computer. start.sh sets the data folder.
+auth_enabled: false
+server:
+  http_listen_address: 127.0.0.1
+  http_listen_port: 3100
+  grpc_listen_address: 127.0.0.1
+  grpc_listen_port: 9096
+  log_level: warn
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: ${LOKI_DATA}
+  storage:
+    filesystem:
+      chunks_directory: ${LOKI_DATA}/chunks
+      rules_directory: ${LOKI_DATA}/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+limits_config:
+  reject_old_samples: false        # the demo logs have fixed times in the past
+  allow_structured_metadata: true
+  volume_enabled: true
+analytics:
+  reporting_enabled: false
+ingester:
+  wal:
+    disk_full_threshold: 0.98      # Loki slows writes when the disk is fuller than this (default 0.90)

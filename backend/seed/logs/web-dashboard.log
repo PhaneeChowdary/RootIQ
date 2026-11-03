@@ -1,0 +1,14 @@
+2026-10-02T07:30:02Z INFO [api] GET /api/widgets 200 84ms
+2026-10-02T07:59:40Z INFO [deploy] release=2026.10.02-1 started previous=2026.10.01-3
+2026-10-02T08:00:58Z INFO [deploy] release=2026.10.02-1 uploaded assets=212 removed_chunks=37 bucket=dash-static
+2026-10-02T08:01:05Z INFO [deploy] release=2026.10.02-1 complete cdn_purge=skipped reason=step_disabled
+2026-10-02T08:03:11Z INFO [cdn] GET /index.html cache=HIT age=7140s
+2026-10-02T08:03:12Z WARN [cdn] GET /static/js/chunk-518.3fa2.js 404 origin=dash-static
+2026-10-02T08:03:12Z ERROR [browser-report] ChunkLoadError: Loading chunk 518 failed (/static/js/chunk-518.3fa2.js) tenant=globex
+2026-10-02T08:04:40Z INFO [cdn] GET /index.html cache=HIT age=7228s
+2026-10-02T08:04:41Z ERROR [browser-report] ChunkLoadError: Loading chunk 518 failed (/static/js/chunk-518.3fa2.js) tenant=initech
+2026-10-02T08:05:15Z INFO [api] GET /api/widgets 200 91ms
+2026-10-02T08:06:02Z INFO [cdn] GET /index.html cache=MISS age=0 client=incognito
+2026-10-02T08:06:03Z INFO [cdn] GET /static/js/chunk-733.9bd1.js 200 cache=MISS
+2026-10-02T08:09:27Z ERROR [browser-report] ChunkLoadError: Loading chunk 518 failed (/static/js/chunk-518.3fa2.js) tenant=globex
+2026-10-02T08:12:00Z INFO [api] GET /health 200 2ms

@@ -1,0 +1,4 @@
+2026-10-02T07:10:41Z INFO [upload] multipart complete size_mb=184 parts=12 latency_ms=58200
+2026-10-02T07:22:13Z INFO [transcode] m4a -> wav ok duration_s=312
+2026-10-02T07:45:02Z WARN [s3] slow part upload part=7 latency_ms=8400
+2026-10-02T08:02:55Z INFO [upload] multipart complete size_mb=22 parts=2 latency_ms=4100

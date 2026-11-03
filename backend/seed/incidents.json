@@ -1,0 +1,150 @@
+{
+  "resolved": [
+    {
+      "title": "SMS verification codes not arriving for some users",
+      "customer": "Northwind Health",
+      "service": "auth-service",
+      "severity": "high",
+      "reported_issue": "Around 20% of users never receive the SMS one-time code at login. Retrying sometimes works after several minutes.",
+      "logs": "WARN [otp-sender] provider=twilio status=429 Too Many Requests",
+      "cause": "OTP texts shared the Twilio sender pool with a marketing campaign; the provider rate-limited the pool and returned HTTP 429, and the OTP sender had no retry.",
+      "workaround": "Offer the voice-call or email code option at login.",
+      "resolution": "Moved OTP traffic to a dedicated Twilio messaging service, added retry with exponential backoff on 429, and enabled failover to voice after two failed attempts.",
+      "preventive_actions": ["Keep OTP and marketing traffic on separate sender pools", "Alert when the provider 429 rate exceeds 2% over 5 minutes"]
+    },
+    {
+      "title": "Users logged out every few minutes",
+      "customer": "Acme Retail",
+      "service": "auth-service",
+      "severity": "medium",
+      "reported_issue": "Staff are signed out of the admin portal every 3 to 5 minutes and must log in again.",
+      "logs": "WARN [jwt] token rejected reason=expired iat_in_future",
+      "cause": "Clock drift of about 6 minutes on node auth-03 made freshly issued JWTs look expired to other nodes.",
+      "workaround": "Remove auth-03 from the load balancer.",
+      "resolution": "Restored NTP sync on auth-03 and returned it to the pool.",
+      "preventive_actions": ["Alert on NTP drift above 30 seconds", "Allow 60 seconds of clock leeway in JWT validation"]
+    },
+    {
+      "title": "Dashboard widgets blank after deploy",
+      "customer": "Globex Logistics",
+      "service": "web-dashboard",
+      "severity": "high",
+      "reported_issue": "After the release, dashboard widgets render as empty grey panels until users hard refresh.",
+      "logs": "ERROR [browser] ChunkLoadError: Loading chunk 412 failed",
+      "cause": "The CDN kept serving a cached index.html that referenced JavaScript chunks removed by the new deploy, causing ChunkLoadError in the browser.",
+      "workaround": "Ask users to hard refresh (Ctrl+Shift+R).",
+      "resolution": "Purged the CDN cache and set Cache-Control: no-cache on index.html so it is always revalidated.",
+      "preventive_actions": ["Add a CDN purge step to the deploy pipeline", "Keep the previous release's chunks available for 24 hours"]
+    },
+    {
+      "title": "Charts show no data for EU tenants",
+      "customer": "Initech",
+      "service": "web-dashboard",
+      "severity": "medium",
+      "reported_issue": "EU tenants see empty charts with a 'no data' message; US tenants are fine.",
+      "logs": "WARN [metrics-api] query timeout region=eu-west-1 replica_lag_s=340",
+      "cause": "The EU read replica fell more than 5 minutes behind and metrics queries timed out.",
+      "workaround": "Point EU dashboard queries at the primary database.",
+      "resolution": "Rebuilt the lagging replica and added automatic fallback to the primary when lag exceeds 60 seconds.",
+      "preventive_actions": ["Alert on replica lag above 60 seconds"]
+    },
+    {
+      "title": "Customers charged twice after checkout retry",
+      "customer": "Umbrella Fitness",
+      "service": "payments-api",
+      "severity": "critical",
+      "reported_issue": "Several customers were charged twice for one checkout after the page showed an error and they clicked Pay again.",
+      "logs": "WARN [gateway] upstream 504 timeout; ERROR [charge] duplicate charge detected idempotency_key=null",
+      "cause": "On a gateway 504 the checkout client retried the charge without forwarding the Idempotency-Key header, so the gateway created a second charge.",
+      "workaround": "Refund duplicates manually from the gateway console.",
+      "resolution": "Forwarded the Idempotency-Key on every retry from the checkout client and refunded the 37 duplicate charges.",
+      "preventive_actions": ["Contract test that every charge request carries an Idempotency-Key", "Daily duplicate-charge report"]
+    },
+    {
+      "title": "Card payments failing with 502",
+      "customer": "Acme Retail",
+      "service": "payments-api",
+      "severity": "critical",
+      "reported_issue": "All card payments fail with a generic error since 02:00 UTC.",
+      "logs": "ERROR [gateway] SSL: CERTIFICATE_VERIFY_FAILED",
+      "cause": "The payment gateway rotated its TLS certificate to a new CA that was missing from our CA bundle.",
+      "workaround": "None; payments were down until the fix.",
+      "resolution": "Updated the CA bundle in the payments-api image and redeployed.",
+      "preventive_actions": ["Track third-party certificate changes", "Use the OS trust store instead of a pinned bundle"]
+    },
+    {
+      "title": "m4a uploads fail during conversion",
+      "customer": "Northwind Health",
+      "service": "file-upload",
+      "severity": "medium",
+      "reported_issue": "Voice notes recorded on iPhone (.m4a) fail with 'unsupported format'; WAV files work.",
+      "logs": "ERROR [transcode] ffmpeg: Decoder (codec aac) not found",
+      "cause": "The new transcoder image used an ffmpeg build without the AAC decoder.",
+      "workaround": "Upload WAV files.",
+      "resolution": "Rebuilt the transcoder image with AAC support.",
+      "preventive_actions": ["Codec smoke test for m4a, mp3 and wav in CI"]
+    },
+    {
+      "title": "Large uploads fail at 99 percent",
+      "customer": "Globex Logistics",
+      "service": "file-upload",
+      "severity": "medium",
+      "reported_issue": "Uploads above 2 GB reach 99% and then fail with 'access denied'.",
+      "logs": "ERROR [s3] 403 Request has expired part=118",
+      "cause": "Presigned multipart URLs expired after 15 minutes, before large uploads finished.",
+      "workaround": "Split files under 2 GB.",
+      "resolution": "Extended presigned URL expiry to 60 minutes and refreshed URLs per part.",
+      "preventive_actions": ["Test uploads of 5 GB on slow links before release"]
+    },
+    {
+      "title": "Email notifications delayed by hours",
+      "customer": "Initech",
+      "service": "notifications",
+      "severity": "high",
+      "reported_issue": "Order confirmation emails arrive 3 to 4 hours late.",
+      "logs": "ERROR [consumer] TemplateRenderError: missing variable 'first_name'; consumer restarting",
+      "cause": "A malformed template made the queue consumer crash and restart in a loop, so the backlog grew to 180k messages.",
+      "workaround": "None during the incident.",
+      "resolution": "Sent malformed messages to a dead-letter queue, fixed the template, and scaled consumers to drain the backlog.",
+      "preventive_actions": ["Dead-letter queue for render failures", "Alert when queue age exceeds 10 minutes"]
+    },
+    {
+      "title": "Password reset emails landing in spam",
+      "customer": "Umbrella Fitness",
+      "service": "notifications",
+      "severity": "medium",
+      "reported_issue": "Users report password reset emails in their spam folder since Monday.",
+      "logs": "WARN [smtp] dkim=fail domain=mail.example.com",
+      "cause": "The DKIM key was rotated without publishing the new DNS record, so messages failed DKIM.",
+      "workaround": "Tell users to check spam.",
+      "resolution": "Published the new DKIM DNS record and verified alignment.",
+      "preventive_actions": ["Checklist for DKIM rotation including DNS verification"]
+    }
+  ],
+  "open": [
+    {
+      "title": "Login verification texts delayed or missing for EU customers",
+      "customer": "Northwind Health",
+      "service": "auth-service",
+      "severity": "high",
+      "reported_issue": "Since this morning many EU users say the login code text never arrives or arrives 10+ minutes late. US users seem unaffected. Support has 40 tickets in two hours.",
+      "logs": "Customer screenshot: 'We couldn't send your code. Try again.'"
+    },
+    {
+      "title": "Dashboard shows blank panels after this morning's release",
+      "customer": "Globex Logistics",
+      "service": "web-dashboard",
+      "severity": "high",
+      "reported_issue": "After the 08:00 release every widget on the operations dashboard is an empty grey box. One user said it fixed itself in an incognito window.",
+      "logs": ""
+    },
+    {
+      "title": "Some customers double charged on subscription renewal",
+      "customer": "Umbrella Fitness",
+      "service": "payments-api",
+      "severity": "critical",
+      "reported_issue": "Five members were charged twice for their monthly renewal last night. Checkout purchases look normal.",
+      "logs": ""
+    }
+  ]
+}

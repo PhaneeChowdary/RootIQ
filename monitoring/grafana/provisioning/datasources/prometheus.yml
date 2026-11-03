@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: rootiq-prometheus
+    type: prometheus
+    access: proxy
+    url: ${PROMETHEUS_URL}
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+  - name: Loki
+    uid: rootiq-loki
+    type: loki
+    access: proxy
+    url: ${LOKI_URL}

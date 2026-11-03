@@ -1,0 +1,44 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Website
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+*.tsbuildinfo
+
+# Secrets and local settings
+.env
+.env.*
+!.env.example
+
+# Runtime data: python -m backend.seed.seed_demo makes the demo data again
+/backend/data/
+*.db
+*.db-*
+*.log
+!/backend/seed/logs/*.log
+/reports/demo/
+
+# Local double-click launchers and their workflow
+/Start.command
+/Start.bat
+/Start.sh
+/start_local.py
+/start.local.json
+/.github/workflows/launcher-platforms.yml
+/.github/check_startup.py
+
+# Private notes
+/*.docx
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
+.claude/

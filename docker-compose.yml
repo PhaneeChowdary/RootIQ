@@ -1,0 +1,133 @@
+# RootIQ on one server: PostgreSQL, the API, agent workers, the website and daily backups.
+#
+# cp backend/.env.example backend/.env # then set the values. See docs/deploy.md.
+#   export ROOTIQ_DB_PASSWORD=...            # or put it in a file named .env next to this file
+#   docker compose up -d --build                # website: http://localhost:8080
+#   docker compose --profile demo run --rm seed # optional: the demo cases
+#   docker compose up -d --scale worker=4       # more agent workers
+#   docker compose --profile monitoring up -d   # also Prometheus (9090) and Grafana (3000)
+#
+# The models: a cloud key on Settings > Models, and/or Ollama on the host computer . Host.docker.internal:11434.
+name: rootiq
+
+x-app: &app
+  image: rootiq-backend:latest
+  build: { context: ., dockerfile: Dockerfile }
+  env_file: [backend/.env]
+  environment: &app-env
+    ROOTIQ_DATABASE_URL: postgresql://rootiq:${ROOTIQ_DB_PASSWORD:?Set ROOTIQ_DB_PASSWORD}@postgres:5432/rootiq
+    ROOTIQ_DATA_DIR: /data
+    ROOTIQ_OLLAMA_URL: ${ROOTIQ_OLLAMA_URL:-http://host.docker.internal:11434}
+    ROOTIQ_ALLOWED_ORIGINS: ${ROOTIQ_PUBLIC_URL:-http://localhost:8080}
+    ROOTIQ_OIDC_REDIRECT_URL: ${ROOTIQ_PUBLIC_URL:-http://localhost:8080}/api/auth/oidc/callback
+    ROOTIQ_COOKIE_SECURE: ${ROOTIQ_COOKIE_SECURE:-false}
+    ROOTIQ_GRAFANA_URL: ${ROOTIQ_GRAFANA_URL:-http://localhost:3000}
+    ROOTIQ_AGENT_EXTERNAL_WORKERS: "true"
+    ROOTIQ_BACKUP_HOURS: "0"          # the backup service makes the backups
+  volumes: [appdata:/data]
+  extra_hosts: ["host.docker.internal:host-gateway"]
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: rootiq
+      POSTGRES_DB: rootiq
+      POSTGRES_PASSWORD: ${ROOTIQ_DB_PASSWORD:?Set ROOTIQ_DB_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rootiq -d rootiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:                              # applies the database changes, then stops
+    <<: *app
+    command: ["python", "-m", "backend.app.migrations", "upgrade"]
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *app
+    environment:
+      <<: *app-env
+      ROOTIQ_AGENT_CONCURRENCY: "0"  # the workers run the agents
+    expose: ["8011"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "backend.app.worker", "--threads", "${ROOTIQ_WORKER_THREADS:-2}", "--grace", "60"]
+    healthcheck: { disable: true }
+    stop_grace_period: 70s              # time to finish the current step before a stop
+    deploy:
+      replicas: ${ROOTIQ_WORKERS:-2}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    build: { context: ., dockerfile: frontend/Dockerfile }
+    image: rootiq-web:latest
+    ports: ["${ROOTIQ_WEB_PORT:-8080}:8080"]
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+  backup:
+    image: postgres:17-alpine
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    environment:
+      PGHOST: postgres
+      PGUSER: rootiq
+      PGDATABASE: rootiq
+      PGPASSWORD: ${ROOTIQ_DB_PASSWORD:?Set ROOTIQ_DB_PASSWORD}
+      ROOTIQ_BACKUP_KEEP: ${ROOTIQ_BACKUP_KEEP:-14}
+    volumes:
+      - appdata:/data
+      - ./deploy/pg-backup.sh:/backup.sh:ro
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+  seed:                                 # docker compose --profile demo run --rm seed
+    <<: *app
+    profiles: [demo]
+    command: ["python", "-m", "backend.seed.seed_demo"]
+    restart: "no"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: [monitoring]
+    volumes: ["./deploy/prometheus.compose.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["127.0.0.1:9090:9090"]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: [monitoring]
+    environment:
+      GF_PATHS_CONFIG: /etc/grafana/rootiq.ini
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_SECURITY_ADMIN_PASSWORD: ${ROOTIQ_GRAFANA_PASSWORD:-admin}
+      PROMETHEUS_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      ROOTIQ_WEBHOOK_URL: http://api:8011/api/alerts/grafana
+      ROOTIQ_ALERT_TOKEN: ${ROOTIQ_ALERT_TOKEN:-}
+      ROOTIQ_DASHBOARDS: /var/lib/grafana/dashboards
+    volumes:
+      - ./monitoring/grafana/grafana.ini:/etc/grafana/rootiq.ini:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  appdata:

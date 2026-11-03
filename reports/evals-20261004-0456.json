@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "started": "2026-10-04T04:56:17.294880+00:00",
+    "model": "by task: openai/gpt-oss-120b, gemini-3.5-flash; backup qwen3:8b",
+    "scenarios": 1,
+    "modes": [
+      "team"
+    ]
+  },
+  "results": [
+    {
+      "scenario": "ctx-disk-full",
+      "kind": "context",
+      "mode": "team",
+      "verdict": "correct",
+      "copied_lookalike": false,
+      "cites_evidence": true,
+      "checked_logs": true,
+      "seconds": 96.4,
+      "tool_calls": 11,
+      "failed_tool_calls": 0,
+      "model_calls": 22,
+      "tokens_in": 25201,
+      "tokens_out": 5114,
+      "likely_cause": "The upload component encountered write failures due to a near\u2011full filesystem. Evidence: \n- 2026-10-02T05:10:00Z `WARN [disk] /var/uploads usage=99%`\n- 2026-10-02T05:12:30Z `ERROR [upload] write failed path=/var/uploads/tmp/8812.part`\n- 2026-10-02T05:13:01Z `ERROR [upload] write failed path=/var/uploads/tmp/8813.part`\nThe disk\u2011space warning precedes the upload errors, indicating an ENOSPC\u2011like condition on the /var/uploads volume.",
+      "warnings": [],
+      "reviewer_rejections": 0,
+      "error": ""
+    }
+  ]
+}

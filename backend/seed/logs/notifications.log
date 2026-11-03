@@ -1,0 +1,5 @@
+2026-10-02T07:00:00Z INFO [consumer] queue=email depth=212 oldest_age_s=4
+2026-10-02T07:30:00Z INFO [consumer] queue=email depth=180 oldest_age_s=3
+2026-10-02T07:41:22Z INFO [smtp] sent template=otp_fallback_email dkim=pass
+2026-10-02T08:00:00Z INFO [consumer] queue=email depth=1904 oldest_age_s=6 note=otp_fallback_email volume up
+2026-10-02T08:10:00Z INFO [consumer] queue=email depth=2210 oldest_age_s=9

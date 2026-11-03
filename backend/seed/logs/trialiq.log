@@ -1,0 +1,22 @@
+2026-10-08T13:02:11Z INFO [deploy] release=trialiq:2026.10.09-1 running criteria_engine=rules+chart
+2026-10-08T13:05:40Z INFO [ehr-sync] labs batch loaded rows=1795 null_values=0 source=lis-feed
+2026-10-08T14:11:09Z INFO [uvicorn.access] "GET /api/trials/NCT06742723/estimate HTTP/1.1" 200
+2026-10-08T14:12:52Z INFO [uvicorn.access] "POST /api/trials/NCT06742723/screen HTTP/1.1" 200
+2026-10-09T09:30:17Z INFO [uvicorn.access] "GET /api/trials/NCT07668388/estimate HTTP/1.1" 200
+2026-10-14T11:34:48Z INFO [config] change=c4f1a9e by=data-eng ehr.labs.import_censored false -> true (keep '>60' and 'pending' lab rows; value stored as NULL)
+2026-10-14T11:34:58Z INFO [config] reload ok changed=ehr.labs.import_censored old=false new=true by=data-eng
+2026-10-14T11:36:28Z INFO [ehr-sync] labs batch loaded rows=1840 null_values=37 source=lis-feed loinc=62238-1,33914-3
+2026-10-14T11:41:28Z INFO [uvicorn.access] "GET /api/trials/NCT07668388/estimate HTTP/1.1" 200
+2026-10-14T11:44:48Z INFO [uvicorn.access] "GET /api/trials/NCT06742723/estimate HTTP/1.1" 500
+2026-10-14T11:44:48Z ERROR [uvicorn.error] Exception in ASGI application: GET /api/trials/NCT06742723/estimate
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/main.py", line 230, in estimate
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/engine.py", line 347, in screen_all
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/engine.py", line 338, in criterion
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/engine.py", line 161, in atom
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/engine.py", line 303, in _lab
+2026-10-14T11:44:48Z ERROR [uvicorn.error] File "backend/app/engine.py", line 135, in in_range
+2026-10-14T11:44:48Z ERROR [uvicorn.error] TypeError: '<' not supported between instances of 'NoneType' and 'float'
+2026-10-14T11:52:48Z INFO [uvicorn.access] "POST /api/trials/NCT06742723/screen HTTP/1.1" 500
+2026-10-14T11:52:48Z ERROR [uvicorn.error] Exception in ASGI application: TypeError: '<' not supported between instances of 'NoneType' and 'float'
+2026-10-14T11:58:48Z INFO [uvicorn.access] "GET /api/trials/NCT06742723/estimate HTTP/1.1" 500
+2026-10-14T11:58:48Z ERROR [uvicorn.error] Exception in ASGI application: TypeError: '<' not supported between instances of 'NoneType' and 'float'

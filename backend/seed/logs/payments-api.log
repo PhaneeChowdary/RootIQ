@@ -1,0 +1,18 @@
+2026-10-02T01:58:00Z INFO [renewal-worker] nightly renewals starting batch=2026-10-02 due=18240
+2026-10-02T02:00:14Z INFO [charge] path=checkout charge ok amount=49.00 idempotency_key=ck_7f21 latency_ms=620
+2026-10-02T02:03:51Z INFO [charge] path=renewal charge ok sub=s_10021 amount=29.00 idempotency_key=rn_s_10021_202610 latency_ms=540
+2026-10-02T02:11:09Z WARN [gateway] upstream 504 timeout path=renewal sub=s_44810 after=30000ms
+2026-10-02T02:11:10Z INFO [renewal-worker] retrying charge sub=s_44810 attempt=2 idempotency_key=null (key regenerated on retry: disabled)
+2026-10-02T02:11:12Z INFO [charge] path=renewal charge ok sub=s_44810 amount=29.00 idempotency_key=null
+2026-10-02T02:11:40Z ERROR [reconcile] duplicate charge detected sub=s_44810 charges=2 idempotency_key=null
+2026-10-02T02:14:22Z WARN [gateway] upstream 504 timeout path=renewal sub=s_51907 after=30000ms
+2026-10-02T02:14:23Z INFO [renewal-worker] retrying charge sub=s_51907 attempt=2 idempotency_key=null (key regenerated on retry: disabled)
+2026-10-02T02:14:55Z ERROR [reconcile] duplicate charge detected sub=s_51907 charges=2 idempotency_key=null
+2026-10-02T02:20:31Z INFO [charge] path=checkout charge ok amount=19.00 idempotency_key=ck_8a03 latency_ms=590
+2026-10-02T02:22:47Z WARN [gateway] upstream 504 timeout path=checkout after=30000ms
+2026-10-02T02:22:48Z INFO [checkout] retrying charge attempt=2 idempotency_key=ck_9c11
+2026-10-02T02:22:50Z INFO [charge] path=checkout gateway returned existing charge idempotency_key=ck_9c11 (no duplicate)
+2026-10-02T02:31:05Z WARN [gateway] upstream 504 timeout path=renewal sub=s_60233 after=30000ms
+2026-10-02T02:31:06Z INFO [renewal-worker] retrying charge sub=s_60233 attempt=2 idempotency_key=null (key regenerated on retry: disabled)
+2026-10-02T02:31:38Z ERROR [reconcile] duplicate charge detected sub=s_60233 charges=2 idempotency_key=null
+2026-10-02T03:40:00Z INFO [renewal-worker] nightly renewals finished ok=18235 failed=0 duplicates_flagged=5

@@ -1,0 +1,93 @@
+# Continuous checks for RootIQ. A failed job blocks the merge (set "required" in the branch rules).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend tests (SQLite and PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: rootiq
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: rootiq_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rootiq" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      ROOTIQ_TEST_DATABASE_URL: postgresql://rootiq:ci-only-password@127.0.0.1:5432/rootiq_test
+      ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13", cache: pip, cache-dependency-path: backend/requirements.txt }
+      - run: pip install -r backend/requirements.txt pytest
+      - run: python -m pytest backend/tests -q
+
+  website:
+    name: Website build and browser test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13", cache: pip, cache-dependency-path: backend/requirements.txt }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: python -m venv .venv && .venv/bin/pip install -r backend/requirements.txt
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npx playwright test
+        working-directory: frontend
+
+  evaluation:
+    name: Agent evaluation gate
+    runs-on: ubuntu-latest
+    needs: backend
+    # Needs a model key in the repository secrets. Without one, the job is skipped (not failed).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    env:
+      ROOTIQ_GROQ_API_KEY: ${{ secrets.ROOTIQ_GROQ_API_KEY }}
+      ROOTIQ_GEMINI_API_KEY: ${{ secrets.ROOTIQ_GEMINI_API_KEY }}
+      ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
+      ROOTIQ_OLLAMA_URL: http://127.0.0.1:9   # no local model in CI: the chains use the cloud models
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for a model key
+        id: key
+        run: echo "present=${{ secrets.ROOTIQ_GROQ_API_KEY != '' || secrets.ROOTIQ_GEMINI_API_KEY != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        if: steps.key.outputs.present == 'true'
+        with: { python-version: "3.13", cache: pip, cache-dependency-path: backend/requirements.txt }
+      - if: steps.key.outputs.present == 'true'
+        run: pip install -r backend/requirements.txt
+      - name: Evaluate the agent team (6 scenarios, one of each kind)
+        if: steps.key.outputs.present == 'true'
+        run: >-
+          python -m backend.evals.run_evals --modes team --cloud --offline-memory --gate
+          --only rec-otp-429,look-dash-config,ctx-disk-full,ctx-db-password,none-tax,att-cors
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.key.outputs.present == 'true'
+        with: { name: evaluation-report, path: "reports/evals-*" }
+
+  images:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t rootiq-backend:ci .
+      - run: docker build -f frontend/Dockerfile -t rootiq-web:ci .
+      - run: ROOTIQ_DB_PASSWORD=ci docker compose config --quiet

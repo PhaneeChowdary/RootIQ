@@ -1,0 +1,63 @@
+# The alert rule, the contact point and the routing. RootIQ's webhook.
+# Grafana puts environment variables into ${...} here . The alert texts use $labels and $values. The URL and the token.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: RootIQ
+    receivers:
+      - uid: rootiq-webhook
+        type: webhook
+        disableResolveMessage: false
+        settings:
+          url: ${ROOTIQ_WEBHOOK_URL}
+          httpMethod: POST
+          authorization_scheme: Bearer
+          authorization_credentials: ${ROOTIQ_ALERT_TOKEN}
+
+policies:
+  - orgId: 1
+    receiver: RootIQ
+    group_by: [alertname, service]
+    group_wait: 10s
+    group_interval: 1m
+    repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: Service health
+    folder: RootIQ
+    interval: 20s
+    rules:
+      - uid: rootiq-service-errors
+        title: Service errors rising
+        condition: C
+        for: 30s
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: high
+        annotations:
+          summary: "{{ $labels.service }}: ERROR lines rising"
+          description: 'The {{ $labels.service }} log has {{ printf "%.0f" $values.B.Value }} ERROR lines in the last 5 minutes (limit 3). Find the cause.'
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: rootiq-prometheus
+            model:
+              refId: A
+              expr: rootiq_service_log_errors_5m
+              instant: true
+              intervalMs: 15000
+              maxDataPoints: 43200
+          - refId: B
+            datasourceUid: __expr__
+            model: { refId: B, type: reduce, expression: A, reducer: last }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: { type: gt, params: [3] }

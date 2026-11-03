@@ -1,0 +1,22 @@
+2026-10-02T06:58:12Z INFO [api] GET /health 200 2ms
+2026-10-02T07:02:40Z INFO [otp-sender] sent otp region=us-east provider=twilio pool=otp-us status=201 latency_ms=410
+2026-10-02T07:05:03Z INFO [otp-sender] sent otp region=eu-west provider=twilio pool=shared-eu status=201 latency_ms=520
+2026-10-02T07:20:51Z INFO [login] password ok user=u_88213 next=otp
+2026-10-02T07:35:00Z INFO [campaign-dispatcher] job=autumn-promo-eu started pool=shared-eu recipients=412000
+2026-10-02T07:41:17Z WARN [otp-sender] provider=twilio pool=shared-eu status=429 Too Many Requests region=eu-west
+2026-10-02T07:41:17Z ERROR [otp-sender] otp send failed user=u_10442 region=eu-west, not retrying
+2026-10-02T07:42:09Z INFO [otp-sender] sent otp region=us-east provider=twilio pool=otp-us status=201 latency_ms=388
+2026-10-02T07:43:30Z WARN [otp-sender] provider=twilio pool=shared-eu status=429 Too Many Requests region=eu-west
+2026-10-02T07:43:30Z ERROR [otp-sender] otp send failed user=u_20918 region=eu-west, not retrying
+2026-10-02T07:48:02Z WARN [otp-sender] provider=twilio pool=shared-eu status=429 Too Many Requests region=eu-west
+2026-10-02T07:48:02Z ERROR [otp-sender] otp send failed user=u_31877 region=eu-west, not retrying
+2026-10-02T07:50:44Z INFO [otp-sender] sent otp region=eu-west provider=twilio pool=shared-eu status=201 latency_ms=9120
+2026-10-02T07:55:10Z WARN [otp-sender] provider=twilio pool=shared-eu 429 rate over 5m=31.4% threshold=none
+2026-10-02T08:01:33Z INFO [otp-sender] sent otp region=us-east provider=twilio pool=otp-us status=201 latency_ms=402
+2026-10-02T08:03:19Z WARN [otp-sender] provider=twilio pool=shared-eu status=429 Too Many Requests region=eu-west
+2026-10-02T08:03:19Z ERROR [otp-sender] otp send failed user=u_44120 region=eu-west, not retrying
+2026-10-02T08:07:55Z INFO [login] fallback=email offered user=u_44120
+2026-10-02T08:10:00Z INFO [campaign-dispatcher] job=autumn-promo-eu progress=58%
+2026-10-02T08:12:41Z WARN [otp-sender] provider=twilio pool=shared-eu status=429 Too Many Requests region=eu-west
+2026-10-02T08:12:41Z ERROR [otp-sender] otp send failed user=u_50231 region=eu-west, not retrying
+2026-10-02T08:15:06Z INFO [api] GET /health 200 3ms

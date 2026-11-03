@@ -1,0 +1,3 @@
+2026-10-08T07:12:40Z INFO [deploy] release=macrolytics@1.3.2 running
+2026-10-08T07:30:15Z INFO [supabase] POST /rest/v1/user_data 201 checkin user=u_3c90 averageCalories=2310 estimatedTdee=2480 recommendedCalories=2130 goalType=cut logged_days=7/7
+2026-10-09T06:55:02Z INFO [supabase] POST /rest/v1/user_data 201 checkin user=u_77ab averageCalories=2655 estimatedTdee=2700 recommendedCalories=2925 goalType=bulk logged_days=7/7

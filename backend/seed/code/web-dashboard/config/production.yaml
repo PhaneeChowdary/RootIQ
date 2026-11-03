@@ -1,0 +1,14 @@
+# web-dashboard production settings
+service: web-dashboard
+environment: production
+
+db:
+  host: dash-db.internal
+  name: dashboard
+  pool:
+    max_size: 2
+    acquire_timeout_ms: 5000
+
+cdn:
+  bucket: dash-static
+  purge_on_deploy: false
