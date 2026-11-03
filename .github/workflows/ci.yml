@@ -92,4 +92,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t rootiq-backend:ci .
       - run: docker build -f frontend/Dockerfile -t rootiq-web:ci .
-      - run: ROOTIQ_DB_PASSWORD=ci docker compose config --quiet
+      - run: cp backend/.env.example backend/.env && ROOTIQ_DB_PASSWORD=ci docker compose config --quiet
