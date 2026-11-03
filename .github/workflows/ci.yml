@@ -26,13 +26,14 @@ jobs:
           --health-cmd "pg_isready -U rootiq" --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       ROOTIQ_TEST_DATABASE_URL: postgresql://rootiq:ci-only-password@127.0.0.1:5432/rootiq_test
-      ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.13", cache: pip, cache-dependency-path: backend/requirements.txt }
       - run: pip install -r backend/requirements.txt pytest
       - run: python -m pytest backend/tests -q
+        env:
+          ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
 
   website:
     name: Website build and browser test
@@ -62,7 +63,6 @@ jobs:
     env:
       ROOTIQ_GROQ_API_KEY: ${{ secrets.ROOTIQ_GROQ_API_KEY }}
       ROOTIQ_GEMINI_API_KEY: ${{ secrets.ROOTIQ_GEMINI_API_KEY }}
-      ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
       ROOTIQ_OLLAMA_URL: http://127.0.0.1:9   # no local model in CI: the chains use the cloud models
     steps:
       - uses: actions/checkout@v4
@@ -76,6 +76,8 @@ jobs:
         run: pip install -r backend/requirements.txt
       - name: Evaluate the agent team (6 scenarios, one of each kind)
         if: steps.key.outputs.present == 'true'
+        env:
+          ROOTIQ_DATA_DIR: ${{ runner.temp }}/rootiq-data
         run: >-
           python -m backend.evals.run_evals --modes team --cloud --offline-memory --gate
           --only rec-otp-429,look-dash-config,ctx-disk-full,ctx-db-password,none-tax,att-cors
